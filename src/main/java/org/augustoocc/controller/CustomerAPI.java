@@ -5,7 +5,8 @@ import io.smallrye.mutiny.Uni;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.reactiveStreams.ReactiveCm;
-import org.augustoocc.repository.CustomerRepo;
+import org.augustoocc.repository.CustomerRepoSpring;
+
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -18,27 +19,17 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 public class CustomerAPI {
 
-
     @Inject
-    CustomerRepo customerRepo;
+    CustomerRepoSpring customerRepo;
 
     @Inject
     ReactiveCm reactiveCm;
-
-    //PostConstruct significa que despues de construir esta clase lo primero que se ejecuta es el codigo
-    //que tiene en su metodo correspondiente
-    //webclient crea un cliente web reactivo para poder hacer la interaccion
-    //Dentro del metodo create se pone la instancia de vertx,  y luego ponemos el web client options, que n
-    // que nos permite dar opciones al cliente. En este caso le pusimos host, puerto y que el
-    //ssl sea falso. Ademas de confiar en todas las peticiones entrantes
-    //Si tuviera mas de un microservicio deberia configurar en vez del localhost, la direccion ip mas el puerto
-    // y el certificado
 
     @GET
     @Blocking
     public List<Customer> list() {
         log.info("Request received - listing objects");
-        return customerRepo.listCustomer();
+        return customerRepo.findAll();
 
     }
 
@@ -46,7 +37,7 @@ public class CustomerAPI {
     @Blocking
     public Response postCustomer(Customer customer) {
         log.info("Request received - putting object in db");
-        customerRepo.createCustomer(customer);
+        customerRepo.save(customer);
         return Response.ok().build();
     }
 
@@ -55,7 +46,7 @@ public class CustomerAPI {
     @Blocking
     public Response deleteCustomer (@PathParam("id") Long id) {
         log.info("Deleting object with id: ", id);
-        customerRepo.deleteCustomer(id);
+        customerRepo.delete(customerRepo.findById(id).get());
         return Response.ok().build();
     }
 
@@ -63,7 +54,7 @@ public class CustomerAPI {
     @Blocking
     public Response putCustomer(Customer customer) {
         log.info("Merging object with id: ", customer.getId());
-        customerRepo.putObject(customer);
+        customerRepo.save(customerRepo.findById(customer.getId()).get());
         return Response.ok().build();
     }
 
@@ -73,15 +64,9 @@ public class CustomerAPI {
     @Blocking
     public Customer getCustumer(@PathParam("id") Long id) {
         log.info("Request received - getting customer");
-        return customerRepo.getCustomer(id);
+        return customerRepo.findById(id).get();
     }
 
-    //Aca combino los unis para hacer un streams de datos y ahi llamo a los streams de
-    //la clase reacttiva que hace el llamado al otro microservicio
-    //El combinedwith nos dice que reglas vamos a ponerle a la combinacion.
-    //Aca queremos traer los atributos del producto y settearselos a los atributos del customer
-    //Esto se hara bloqueante, porque no tenemos base de datos
-    //por eso hay que bloquear el hilo
     @GET
     @Path("{id}/customer-products")
     @Blocking

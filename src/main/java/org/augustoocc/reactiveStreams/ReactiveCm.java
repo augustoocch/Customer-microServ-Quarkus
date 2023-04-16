@@ -10,7 +10,7 @@ import io.vertx.mutiny.ext.web.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.domain.Product;
-import org.augustoocc.repository.CustomerRepo;
+import org.augustoocc.repository.CustomerRepoJavax;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -29,10 +29,9 @@ public class ReactiveCm {
 
 
     @Inject
-    CustomerRepo customerRepo;
+    CustomerRepoJavax customerRepo;
 
     private WebClient webClient;
-
 
     @PostConstruct
     void initialize() {
@@ -41,17 +40,12 @@ public class ReactiveCm {
                         .setDefaultPort(8080).setSsl(false).setTrustAll(true));
     }
 
-    //Se utiliza Uni por que es una clase reactiva de mutiny
-    //Aca vamos a contruir el cluiente reactivo
-    //Create from nos permite crear un stream a partir de algo
-    // el item es para crear un stream a partir de un item. Este item es el objeto de negocio
     public Uni<Customer> getReactiveCustomerStream(Long id) {
         Customer customer = customerRepo.getCustomer(id);
         Uni<Customer> item = Uni.createFrom().item(customer);
         return item;
     }
 
-    //El send encia la peticion del metodo get.
     public Uni<List<Product>> listReactiveProducts() {
         return webClient.get(8081, "localhost", "/api/v1/product").send()
                 .onFailure().invoke(response -> log.error("Failure getting the List of Products", response))

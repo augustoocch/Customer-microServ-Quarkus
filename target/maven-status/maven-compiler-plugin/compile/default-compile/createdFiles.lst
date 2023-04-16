@@ -1,4 +1,1 @@
-org/augustoocc/domain/Customer.class
-org/augustoocc/controller/CustomerAPI.class
-org/augustoocc/repository/CustomerRepo.class
-org/augustoocc/domain/Product.class
+META-INF/panache-archive.marker
