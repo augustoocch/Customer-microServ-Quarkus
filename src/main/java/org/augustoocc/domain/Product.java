@@ -1,7 +1,7 @@
 package org.augustoocc.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import io.quarkus.hibernate.reactive.panache.PanacheEntity;
 import lombok.Data;
 
 import javax.persistence.*;

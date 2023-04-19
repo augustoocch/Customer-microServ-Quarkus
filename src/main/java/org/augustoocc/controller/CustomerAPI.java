@@ -1,8 +1,5 @@
 package org.augustoocc.controller;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.quarkus.hibernate.reactive.panache.Panache;
-import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import io.quarkus.hibernate.reactive.panache.PanacheRepository;
 import io.quarkus.panache.common.Sort;
 import io.smallrye.mutiny.Uni;
@@ -19,8 +16,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
-
-import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/api/v1/customer")
 @Slf4j
