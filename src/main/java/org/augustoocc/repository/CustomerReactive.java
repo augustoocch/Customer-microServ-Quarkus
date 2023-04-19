@@ -18,7 +18,7 @@ public class CustomerReactive implements PanacheRepository<Customer> {
 
     @ConsumeEvent("add-customer")
     private Uni<Response> addCustomer(Customer c) {
-        log.info("Deleting object with id: ", c.getId());
+        log.info("Deleting object with id: ", c.id);
         return persist(c).onItem().transform(i-> Response.ok().status(CREATED).build());
     }
 
@@ -37,8 +37,8 @@ public class CustomerReactive implements PanacheRepository<Customer> {
         if(customer == null || customer.getCode() == null) {
             throw new WebApplicationException("Product code was not set on the request", HttpResponseStatus.UNPROCESSABLE_ENTITY.code());
         }
-        log.info("Merging object with id: ", customer.getId());
-        return findById(customer.getId())
+        log.info("Merging object with id: ", customer.id);
+        return findById(customer.id)
                     .onItem().ifNotNull().invoke(entity -> {
                         entity.setNames(customer.getNames());
                         entity.setAccountNumber(customer.getAccountNumber());

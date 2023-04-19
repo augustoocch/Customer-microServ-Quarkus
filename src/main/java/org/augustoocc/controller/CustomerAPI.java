@@ -53,7 +53,7 @@ public class CustomerAPI  implements PanacheRepository<Customer> {
 
     @PUT
     public Uni<Response> putCustomer(@RestPath  Long id, Customer customer) {
-        customer.setId(id);
+        customer.id = id;
         return bus.<Response>request("update-customer", customer)
                 .onItem().transform(Message::body);
     }
