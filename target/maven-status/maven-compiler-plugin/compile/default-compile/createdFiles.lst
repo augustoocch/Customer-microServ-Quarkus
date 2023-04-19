@@ -1,1 +1,8 @@
+org/augustoocc/repository/CustomerRepoJavax.class
+org/augustoocc/reactiveStreams/ReactiveCm.class
+org/augustoocc/domain/Customer.class
 META-INF/panache-archive.marker
+org/augustoocc/controller/CustomerAPI.class
+org/augustoocc/repository/CustomerRepoSpring.class
+org/augustoocc/domain/Product.class
+org/augustoocc/repository/CustomerReactive.class

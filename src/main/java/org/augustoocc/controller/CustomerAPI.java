@@ -1,11 +1,18 @@
 package org.augustoocc.controller;
 
-import io.smallrye.common.annotation.Blocking;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.quarkus.hibernate.reactive.panache.Panache;
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import io.quarkus.hibernate.reactive.panache.PanacheRepository;
+import io.quarkus.panache.common.Sort;
 import io.smallrye.mutiny.Uni;
+import io.vertx.mutiny.core.eventbus.EventBus;
+import io.vertx.mutiny.core.eventbus.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.reactiveStreams.ReactiveCm;
-import org.augustoocc.repository.CustomerRepoSpring;
+import org.augustoocc.repository.CustomerReactive;
+import org.jboss.resteasy.reactive.RestPath;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -13,63 +20,59 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
+import static javax.ws.rs.core.Response.Status.*;
+
 @Path("/api/v1/customer")
 @Slf4j
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class CustomerAPI {
+public class CustomerAPI  implements PanacheRepository<Customer> {
 
     @Inject
-    CustomerRepoSpring customerRepo;
+    EventBus bus;
 
     @Inject
     ReactiveCm reactiveCm;
 
-    @GET
-    @Blocking
-    public List<Customer> list() {
-        log.info("Request received - listing objects");
-        return customerRepo.findAll();
+    @Inject
+    CustomerReactive customerReactive;
 
+    @GET
+    public Uni<List<Customer>> list() {
+        return listAll(Sort.by("names"));
     }
 
+
     @POST
-    @Blocking
-    public Response postCustomer(Customer customer) {
-        log.info("Request received - putting object in db");
-        customerRepo.save(customer);
-        return Response.ok().build();
+    public Uni<Response> add(Customer c) {
+        return bus.<Response>request("add-customer", c)
+                .onItem().transform(Message::body);
     }
 
     @DELETE
     @Path("delete/{id}")
-    @Blocking
-    public Response deleteCustomer (@PathParam("id") Long id) {
-        log.info("Deleting object with id: ", id);
-        customerRepo.delete(customerRepo.findById(id).get());
-        return Response.ok().build();
+    public Uni<Response> deleteCustomer (@PathParam("id") Long id) {
+        return bus.<Response>request("delete-customer", id)
+                .onItem().transform(Message::body);
     }
 
     @PUT
-    @Blocking
-    public Response putCustomer(Customer customer) {
-        log.info("Merging object with id: ", customer.getId());
-        customerRepo.save(customerRepo.findById(customer.getId()).get());
-        return Response.ok().build();
+    public Uni<Response> putCustomer(@RestPath  Long id, Customer customer) {
+        customer.setId(id);
+        return bus.<Response>request("update-customer", customer)
+                .onItem().transform(Message::body);
     }
 
 
     @GET
     @Path("/id/{id}")
-    @Blocking
-    public Customer getCustumer(@PathParam("id") Long id) {
-        log.info("Request received - getting customer");
-        return customerRepo.findById(id).get();
+    public Uni<Customer> getCustumer(@PathParam("id") Long id) {
+        return bus.<Customer>request("get-by-id", id)
+                .onItem().transform(Message::body);
     }
 
     @GET
     @Path("{id}/customer-products")
-    @Blocking
     public Uni<Customer> getProductById(@PathParam("id") Long id) {
        return Uni.combine().all().unis(reactiveCm.getReactiveCustomerStream(id), reactiveCm.listReactiveProducts())
                 .combinedWith((customer, listOfProd) -> {
