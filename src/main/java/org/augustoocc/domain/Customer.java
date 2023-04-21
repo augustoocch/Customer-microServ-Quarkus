@@ -2,13 +2,16 @@ package org.augustoocc.domain;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.quarkus.hibernate.reactive.panache.PanacheEntity;
-import lombok.Data;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class Customer extends PanacheEntity {
 
    //Cuando usamos panache entity se quita el id

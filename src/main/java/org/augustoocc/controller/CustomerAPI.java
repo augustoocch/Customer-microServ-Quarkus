@@ -61,8 +61,8 @@ public class CustomerAPI  implements PanacheRepository<Customer> {
 
     @GET
     @Path("/id/{id}")
-    public Uni<Customer> getCustumer(@PathParam("id") Long id) {
-        return bus.<Customer>request("get-by-id", id)
+    public Uni<Response> getCustumer(@PathParam("id") Long id) {
+        return bus.<Response>request("get-by-id", id)
                 .onItem().transform(Message::body);
     }
 

@@ -4,26 +4,33 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.hibernate.reactive.panache.PanacheRepository;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
+import io.vertx.mutiny.core.eventbus.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
+import org.augustoocc.exceptions.NotWritableEx;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.Status.*;
 
 @Slf4j
+@ApplicationScoped
 public class CustomerReactive implements PanacheRepository<Customer> {
 
+    @Inject
+    NotWritableEx exception;
 
     @ConsumeEvent("add-customer")
-    private Uni<Response> addCustomer(Customer c) {
-        log.info("Deleting object with id: ", c.id);
-        return persist(c).onItem().transform(i-> Response.ok().status(CREATED).build());
+    public Uni<Customer> addCustomer(Customer c) throws NotWritableEx{
+        log.info("Adding customer with id: ", c.getNames());
+        return persist(c).onFailure().invoke(i -> new NotWritableEx("Not"));
     }
 
     @ConsumeEvent("delete-customer")
-    private Uni<Response> deleteCustomer(Long id) {
+    public Uni<Response> deleteCustomer(Long id) {
         log.info("Deleting object with id: ", id);
         return delete("id", id)
                 .onFailure()
@@ -33,7 +40,7 @@ public class CustomerReactive implements PanacheRepository<Customer> {
     }
 
     @ConsumeEvent("update-customer")
-    private Uni<Response> updateCustomer(Customer customer) {
+    public Uni<Response> updateCustomer(Customer customer) {
         if(customer == null || customer.getCode() == null) {
             throw new WebApplicationException("Product code was not set on the request", HttpResponseStatus.UNPROCESSABLE_ENTITY.code());
         }
@@ -50,11 +57,11 @@ public class CustomerReactive implements PanacheRepository<Customer> {
 
 
     @ConsumeEvent("get-by-id")
-    private Uni<Customer> getById(Long id) {
+    public Uni<Customer> getById(Long id) {
         log.info("Request received - getting customer");
         return findById(id).onItem()
                         .ifNotNull()
-                        .transform(i -> Response.ok(findById(id)).status(ACCEPTED).build().readEntity(Customer.class))
+                        .transform(i -> Response.ok().status(ACCEPTED).build().readEntity(Customer.class))
                         .onFailure().invoke(i -> Response.ok(NOT_FOUND).build());
     }
 

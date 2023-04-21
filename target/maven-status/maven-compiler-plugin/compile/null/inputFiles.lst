@@ -1,5 +1,6 @@
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/repository/CustomerReactive.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/reactiveStreams/ReactiveCm.java
+/home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/exceptions/NotWritableEx.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/controller/CustomerAPI.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/repository/CustomerRepoSpring.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/domain/Product.java
