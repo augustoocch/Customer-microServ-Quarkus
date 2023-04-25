@@ -1,18 +1,22 @@
 package org.augustoocc.repository;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.hibernate.reactive.panache.PanacheRepository;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.core.eventbus.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.exceptions.NotWritableEx;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+
+import java.time.Duration;
+import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -26,17 +30,17 @@ public class CustomerReactive implements PanacheRepository<Customer> {
     @ConsumeEvent("add-customer")
     public Uni<Customer> addCustomer(Customer c) throws NotWritableEx{
         log.info("Adding customer with id: ", c.getNames());
-        return persist(c).onFailure().invoke(i -> new NotWritableEx("Not"));
+        return Panache.withTransaction(c::persist)
+                .replaceWith(c)
+                .onFailure().invoke(i -> new NotWritableEx("Not possible to add the customer due to error"));
     }
 
     @ConsumeEvent("delete-customer")
-    public Uni<Response> deleteCustomer(Long id) {
+    public void deleteCustomer(Long id) {
         log.info("Deleting object with id: ", id);
-        return delete("id", id)
-                .onFailure()
-                .invoke(i -> Response.ok().status(NOT_FOUND).build())
-                .onItem()
-                .transform(i -> Response.ok().status(ACCEPTED).build());
+        deleteById(id)
+                .ifNoItem().after(Duration.ofMillis(500))
+                .failWith(()-> new NotFoundException("Customer not found"));
     }
 
     @ConsumeEvent("update-customer")

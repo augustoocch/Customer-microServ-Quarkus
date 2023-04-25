@@ -1,6 +1,6 @@
 package org.augustoocc.controller;
 
-import io.quarkus.hibernate.reactive.panache.PanacheRepository;
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import io.quarkus.panache.common.Sort;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -15,13 +15,15 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Path("/api/v1/customer")
 @Slf4j
 @Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
-public class CustomerAPI  implements PanacheRepository<Customer> {
+public class CustomerAPI  {
 
     @Inject
     EventBus bus;
@@ -32,16 +34,21 @@ public class CustomerAPI  implements PanacheRepository<Customer> {
     @Inject
     CustomerReactive customerReactive;
 
+    @Inject
+    DateTimeFormatter logtimestamp;
+
     @GET
-    public Uni<List<Customer>> list() {
-        return listAll(Sort.by("names"));
+    public Uni<List<PanacheEntityBase>> list() {
+        return Customer.listAll(Sort.by("names"));
     }
 
 
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
     public Uni<Response> add(Customer c) {
-        return bus.<Response>request("add-customer", c)
-                .onItem().transform(Message::body);
+        return bus.<Customer>request("add-customer", c)
+                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                .map(i -> Response.ok(i.body()).build());
     }
 
     @DELETE
@@ -52,21 +59,25 @@ public class CustomerAPI  implements PanacheRepository<Customer> {
     }
 
     @PUT
+    @Produces(MediaType.APPLICATION_JSON)
     public Uni<Response> putCustomer(@RestPath  Long id, Customer customer) {
         customer.id = id;
-        return bus.<Response>request("update-customer", customer)
-                .onItem().transform(Message::body);
+        return bus.<Customer>request("update-customer", customer)
+                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                .map(i -> Response.ok(i.body()).build());
     }
 
 
     @GET
     @Path("/id/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Uni<Response> getCustumer(@PathParam("id") Long id) {
         return bus.<Response>request("get-by-id", id)
                 .onItem().transform(Message::body);
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/customer-products")
     public Uni<Customer> getProductById(@PathParam("id") Long id) {
        return Uni.combine().all().unis(reactiveCm.getReactiveCustomerStream(id), reactiveCm.listReactiveProducts())
