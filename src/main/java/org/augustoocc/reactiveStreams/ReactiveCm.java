@@ -39,6 +39,11 @@ public class ReactiveCm {
                         .setDefaultPort(8080).setSsl(false).setTrustAll(true));
     }
 
+    public Uni<Customer> getReactiveCustomerStream(Long id) {
+        Uni<Customer> item = customerRepo.findById(id);
+        return item;
+    }
+
     public Uni<List<Product>> listReactiveProducts() {
         return webClient.get(8081, "localhost", "/api/v1/product").send()
                 .onFailure().invoke(response -> log.error("Failure getting the List of Products", response))
