@@ -4,6 +4,7 @@ import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
 import lombok.extern.slf4j.Slf4j;
+import io.vertx.core.eventbus.Message;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.exceptions.NotFoundEx;
 import org.augustoocc.exceptions.NotWritableEx;
@@ -12,6 +13,7 @@ import org.augustoocc.validations.Validations;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 
 
@@ -51,13 +53,15 @@ public class CustomerReactive {
 
     @ConsumeEvent("delete-customer")
     public Uni<Response> delete(Long Id) {
-        return Panache.withTransaction(() -> Customer.deleteById(Id))
+        return Panache.withTransaction(() -> customerRepository.deleteById(Id))
                 .map(deleted -> deleted
                         ? Response.ok().status(NO_CONTENT).build()
-                        : Response.ok().status(NOT_FOUND).build());
+                        : Response.ok().status(NOT_FOUND).build())
+                .onFailure().recoverWithItem(Response.serverError().build());
     }
 
     @ConsumeEvent("update-customer")
+    @Transactional
     public Uni<Customer> updateCustomer(CustomerMessage customer) {
         if (validate.postValidation(customer.getCustomer())) {
             throw exception.nullValues("Put method 'add-customer', ");
@@ -71,6 +75,7 @@ public class CustomerReactive {
                     entity.setAddress(customer.getCustomer().getAddress());
                     entity.setAccountNumber(customer.getCustomer().getAccountNumber());
                     entity.setCode(customer.getCustomer().getCode());
+                    entity.setProducts(customer.getCustomer().getProducts());
                 }))
                 .replaceWith(customer.getCustomer())
                 .onFailure().invoke(i -> exception.panacheFailure("Put method 'add-customer'"));

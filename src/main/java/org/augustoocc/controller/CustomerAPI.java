@@ -1,32 +1,25 @@
 package org.augustoocc.controller;
 
-import io.quarkus.hibernate.reactive.panache.Panache;
-import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import io.quarkus.panache.common.Sort;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
-import io.vertx.mutiny.core.eventbus.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.reactiveStreams.CustomerMessage;
 import org.augustoocc.reactiveStreams.ReactiveCm;
 import org.augustoocc.repository.CustomerReactive;
 import org.augustoocc.repository.CustomerRepository;
-import org.jboss.resteasy.reactive.RestPath;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static org.jboss.resteasy.reactive.RestResponse.StatusCode.NOT_FOUND;
 
 @Path("/api/v1/customer")
 @Slf4j
@@ -66,9 +59,8 @@ public class CustomerAPI  {
     @Path("delete/{id}")
     public Uni<Response> deleteCustomer(@PathParam("id") Long id) {
         return bus.<Response>request("delete-customer", id)
-                .map(Message::body)
-                .onItem().transformToUni(response -> Uni.createFrom().item(() -> response))
-                .onFailure().recoverWithItem(Response.serverError().build());
+                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                .map(i -> i.body());
     }
 
     @PUT
