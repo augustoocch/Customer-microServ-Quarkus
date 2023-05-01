@@ -58,7 +58,7 @@ public class CustomerReactive {
     }
 
     @ConsumeEvent("update-customer")
-    public Uni<Response> updateCustomer(CustomerMessage customer) {
+    public Uni<Customer> updateCustomer(CustomerMessage customer) {
         if (validate.postValidation(customer.getCustomer())) {
             throw exception.nullValues("Put method 'add-customer', ");
         }
@@ -66,11 +66,14 @@ public class CustomerReactive {
         return Panache.withTransaction(() -> Customer.<Customer>findById(customer.getId())
                 .onItem().ifNotNull().invoke(entity -> {
                     entity.setNames(customer.getCustomer().getNames());
+                    entity.setSurname(customer.getCustomer().getSurname());
+                    entity.setPhone(customer.getCustomer().getPhone());
+                    entity.setAddress(customer.getCustomer().getAddress());
                     entity.setAccountNumber(customer.getCustomer().getAccountNumber());
                     entity.setCode(customer.getCustomer().getCode());
                 }))
-                .onItem().ifNotNull().transform(entity -> Response.ok(entity).build())
-                .onItem().ifNull().continueWith(Response.ok().status(NOT_FOUND)::build);
+                .replaceWith(customer.getCustomer())
+                .onFailure().invoke(i -> exception.panacheFailure("Put method 'add-customer'"));
     }
 
 

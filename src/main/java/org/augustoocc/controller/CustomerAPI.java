@@ -73,8 +73,10 @@ public class CustomerAPI  {
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<Response> putCustomer(@RestPath  Long id, Customer customer) {
-        return bus.<Customer>request("update-customer", customer)
+    @Path("update/{id}/")
+    public Uni<Response> putCustomer(@PathParam("id") Long id, Customer customer) {
+        CustomerMessage cm = new CustomerMessage(id, customer);
+        return bus.<Customer>request("update-customer", cm)
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
                 .map(i -> Response.ok(i.body()).build());
     }
@@ -83,9 +85,8 @@ public class CustomerAPI  {
     @GET
     @Path("/id/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<Response> getCustumer(@PathParam("id") Long id, Customer c) {
-        CustomerMessage cm = new CustomerMessage(id, c);
-        return bus.<Customer>request("get-by-id", cm)
+    public Uni<Response> getCustumer(@PathParam("id") Long id) {
+        return bus.<Customer>request("get-by-id", id)
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
                 .map(i -> Response.ok(i.body()).build());
     }

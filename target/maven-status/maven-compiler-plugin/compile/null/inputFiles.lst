@@ -4,9 +4,8 @@
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/exceptions/NotWritableEx.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/controller/CustomerAPI.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/exceptions/NotFoundEx.java
+/home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/reactiveStreams/CustomerMessage.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/repository/CustomerRepository.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/validations/Validations.java
-/home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/repository/CustomerRepoSpring.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/domain/Product.java
-/home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/repository/CustomerRepoJavax.java
 /home/augusto/programingData/Quarkus/Customer-micro/src/main/java/org/augustoocc/domain/Customer.java
