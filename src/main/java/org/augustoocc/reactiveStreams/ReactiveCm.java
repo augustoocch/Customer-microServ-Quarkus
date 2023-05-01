@@ -10,7 +10,7 @@ import io.vertx.mutiny.ext.web.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.domain.Product;
-import org.augustoocc.repository.CustomerRepoJavax;
+import org.augustoocc.repository.CustomerRepository;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -27,9 +27,8 @@ public class ReactiveCm {
     @Inject
     Vertx vertxReactive;
 
-
     @Inject
-    CustomerRepoJavax customerRepo;
+    CustomerRepository customerRepo;
 
     private WebClient webClient;
 
@@ -38,12 +37,6 @@ public class ReactiveCm {
         this.webClient = WebClient.create(vertxReactive,
                 new WebClientOptions().setDefaultHost("localhost")
                         .setDefaultPort(8080).setSsl(false).setTrustAll(true));
-    }
-
-    public Uni<Customer> getReactiveCustomerStream(Long id) {
-        Customer customer = customerRepo.getCustomer(id);
-        Uni<Customer> item = Uni.createFrom().item(customer);
-        return item;
     }
 
     public Uni<List<Product>> listReactiveProducts() {
