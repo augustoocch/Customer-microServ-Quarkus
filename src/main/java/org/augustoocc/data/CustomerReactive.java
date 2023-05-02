@@ -1,10 +1,10 @@
-package org.augustoocc.repository;
+package org.augustoocc.data;
 
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
 import lombok.extern.slf4j.Slf4j;
-import io.vertx.core.eventbus.Message;
+import org.augustoocc.repository.CustomerRepository;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.exceptions.NotFoundEx;
 import org.augustoocc.exceptions.NotWritableEx;
@@ -16,6 +16,11 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static org.jboss.resteasy.reactive.RestResponse.StatusCode.NOT_FOUND;
@@ -37,11 +42,14 @@ public class CustomerReactive {
     @Inject
     Validations validate;
 
+    @Inject
+    DateTimeFormatter logtimestamp;
+
 
     @ConsumeEvent("add-customer")
     public Uni<Customer> addCustomer(Customer c) throws NotWritableEx {
-        log.info("Adding customer with id: ", c.getNames());
-        if (validate.postValidation(c) == true) {
+        log.info("Adding customer in timestamp: ", LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));
+        if (validate.postValidation(c)) {
             throw exception.nullValues("Post method 'add-customer', ");
         } else {
             return Panache.withTransaction(c::persist)
@@ -52,12 +60,13 @@ public class CustomerReactive {
 
 
     @ConsumeEvent("delete-customer")
-    public Uni<Response> delete(Long Id) {
-        return Panache.withTransaction(() -> customerRepository.deleteById(Id))
-                .map(deleted -> deleted
-                        ? Response.ok().status(NO_CONTENT).build()
-                        : Response.ok().status(NOT_FOUND).build())
-                .onFailure().recoverWithItem(Response.serverError().build());
+    public Uni<Customer> delete(Long id) {
+        log.info("Processing delete request for id {}", id);
+        Uni<Customer> c = Panache.withTransaction(() -> customerRepository.findById(id));
+
+        return Panache.withTransaction(() -> customerRepository.deleteById(id))
+                .replaceWith(c)
+                .onFailure().invoke(i -> exception.panacheFailure("Delete method 'delete-customer'"));
     }
 
     @ConsumeEvent("update-customer")
@@ -85,7 +94,15 @@ public class CustomerReactive {
     @ConsumeEvent("get-by-id")
     public Uni<Customer> getById(Long id) {
         log.info("Request received - getting customer");
-        return Panache.withTransaction(() -> customerRepository.findById(id));
+        return Panache.withTransaction(() -> customerRepository.findById(id))
+                .onFailure().invoke(res -> log.error("Error recuperando productos ", res));
     }
 
 }
+
+
+/*
+ return Panache.withTransaction(() -> customerRepository.deleteById(id))
+                .replaceWith(c)
+                .onFailure().invoke(i -> exception.panacheFailure("Post method 'add-customer'"));
+ */

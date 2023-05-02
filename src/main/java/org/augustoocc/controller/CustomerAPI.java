@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.reactiveStreams.CustomerMessage;
 import org.augustoocc.reactiveStreams.ReactiveCm;
-import org.augustoocc.repository.CustomerReactive;
+import org.augustoocc.data.CustomerReactive;
 import org.augustoocc.repository.CustomerRepository;
 
 import javax.inject.Inject;
@@ -58,10 +58,20 @@ public class CustomerAPI  {
     @DELETE
     @Path("delete/{id}")
     public Uni<Response> deleteCustomer(@PathParam("id") Long id) {
-        return bus.<Response>request("delete-customer", id)
+        log.info("Received delete request for id {}", id);
+        return bus.<Customer>request("delete-customer", id)
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
-                .map(i -> i.body());
+                .map(i -> {
+                    if (i.body() == null) {
+                        return Response.ok().status(204).build();
+                    } else {
+                        return Response.ok(i.body()).status(200).build();
+                    }
+                });
+
     }
+
+
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
@@ -80,7 +90,13 @@ public class CustomerAPI  {
     public Uni<Response> getCustumer(@PathParam("id") Long id) {
         return bus.<Customer>request("get-by-id", id)
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
-                .map(i -> Response.ok(i.body()).build());
+                .map(i ->  {
+                    if(i.body() == null) {
+                        return Response.ok().status(204).build();
+                    } else {
+                        return Response.ok(i.body()).status(200).build();
+                    }
+                });
     }
 
     @GET
