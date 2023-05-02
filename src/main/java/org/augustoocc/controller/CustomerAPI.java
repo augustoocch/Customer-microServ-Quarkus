@@ -38,13 +38,9 @@ public class CustomerAPI  {
 
     @Inject
     CustomerRepository customerRepo;
+
     @Inject
     DateTimeFormatter logtimestamp;
-
-    @GET
-    public Uni<List<Customer>> list() {
-        return customerRepo.listAll(Sort.by("id"));
-    }
 
 
     @POST
@@ -54,23 +50,6 @@ public class CustomerAPI  {
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
                 .map(i -> Response.ok(i.body()).build());
     }
-
-    @DELETE
-    @Path("delete/{id}")
-    public Uni<Response> deleteCustomer(@PathParam("id") Long id) {
-        log.info("Received delete request for id {}", id);
-        return bus.<Customer>request("delete-customer", id)
-                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
-                .map(i -> {
-                    if (i.body() == null) {
-                        return Response.ok().status(204).build();
-                    } else {
-                        return Response.ok(i.body()).status(200).build();
-                    }
-                });
-
-    }
-
 
 
     @PUT
@@ -92,12 +71,25 @@ public class CustomerAPI  {
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
                 .map(i ->  {
                     if(i.body() == null) {
-                        return Response.ok().status(204).build();
+                        return Response.ok().status(400).build();
                     } else {
                         return Response.ok(i.body()).status(200).build();
                     }
                 });
     }
+
+    @GET
+    public Uni<List<Customer>> list() {
+        return customerRepo.listAll(Sort.by("id"));
+    }
+
+    @DELETE
+    @Path("delete/{id}")
+    public Uni<Response> deleteCustomer(@PathParam("id") Long id) {
+        log.info("Received delete request for id {}", id);
+        return customerReactive.deleteCustomer(id);
+    }
+
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.function.Supplier;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static org.jboss.resteasy.reactive.RestResponse.StatusCode.NOT_FOUND;
@@ -59,14 +60,12 @@ public class CustomerReactive {
     }
 
 
-    @ConsumeEvent("delete-customer")
-    public Uni<Customer> delete(Long id) {
-        log.info("Processing delete request for id {}", id);
-        Uni<Customer> c = Panache.withTransaction(() -> customerRepository.findById(id));
-
-        return Panache.withTransaction(() -> customerRepository.deleteById(id))
-                .replaceWith(c)
-                .onFailure().invoke(i -> exception.panacheFailure("Delete method 'delete-customer'"));
+    //@ConsumeEvent("delete-customer")
+    public Uni<Response> deleteCustomer(Long Id) {
+        return Panache.withTransaction(() -> Customer.deleteById(Id))
+                .map(deleted -> deleted
+                        ? Response.ok().status(200).build()
+                        : Response.ok().status(400).build());
     }
 
     @ConsumeEvent("update-customer")
@@ -77,15 +76,15 @@ public class CustomerReactive {
         }
         log.info("Merging object with id: ", customer.getId());
         return Panache.withTransaction(() -> Customer.<Customer>findById(customer.getId())
-                .onItem().ifNotNull().invoke(entity -> {
-                    entity.setNames(customer.getCustomer().getNames());
-                    entity.setSurname(customer.getCustomer().getSurname());
-                    entity.setPhone(customer.getCustomer().getPhone());
-                    entity.setAddress(customer.getCustomer().getAddress());
-                    entity.setAccountNumber(customer.getCustomer().getAccountNumber());
-                    entity.setCode(customer.getCustomer().getCode());
-                    entity.setProducts(customer.getCustomer().getProducts());
-                }))
+                        .onItem().ifNotNull().invoke(entity -> {
+                            entity.setNames(customer.getCustomer().getNames());
+                            entity.setSurname(customer.getCustomer().getSurname());
+                            entity.setPhone(customer.getCustomer().getPhone());
+                            entity.setAddress(customer.getCustomer().getAddress());
+                            entity.setAccountNumber(customer.getCustomer().getAccountNumber());
+                            entity.setCode(customer.getCustomer().getCode());
+                            entity.setProducts(customer.getCustomer().getProducts());
+                        }))
                 .replaceWith(customer.getCustomer())
                 .onFailure().invoke(i -> exception.panacheFailure("Put method 'add-customer'"));
     }
@@ -97,12 +96,5 @@ public class CustomerReactive {
         return Panache.withTransaction(() -> customerRepository.findById(id))
                 .onFailure().invoke(res -> log.error("Error recuperando productos ", res));
     }
-
 }
 
-
-/*
- return Panache.withTransaction(() -> customerRepository.deleteById(id))
-                .replaceWith(c)
-                .onFailure().invoke(i -> exception.panacheFailure("Post method 'add-customer'"));
- */
