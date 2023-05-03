@@ -88,6 +88,7 @@ public class CustomerAPI  {
     public Uni<Response> deleteCustomer(@PathParam("id") Long id) {
         log.info("Received delete request for id {}", id);
         return customerReactive.deleteCustomer(id);
+
     }
 
 

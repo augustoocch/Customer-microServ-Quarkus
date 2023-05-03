@@ -3,6 +3,7 @@ package org.augustoocc.data;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
+import io.vertx.mutiny.core.eventbus.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.repository.CustomerRepository;
 import org.augustoocc.domain.Customer;
@@ -16,14 +17,12 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 
-
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.function.Supplier;
+import java.util.HashSet;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static org.jboss.resteasy.reactive.RestResponse.StatusCode.NOT_FOUND;
 
 @Slf4j
@@ -35,10 +34,6 @@ public class CustomerReactive {
 
     @Inject
     CustomerRepository customerRepository;
-
-
-    @Inject
-    NotFoundEx notFoundEx;
 
     @Inject
     Validations validate;
@@ -65,7 +60,7 @@ public class CustomerReactive {
         return Panache.withTransaction(() -> Customer.deleteById(Id))
                 .map(deleted -> deleted
                         ? Response.ok().status(200).build()
-                        : Response.ok().status(400).build());
+                        : Response.ok().status(404).build());
     }
 
     @ConsumeEvent("update-customer")
@@ -75,7 +70,7 @@ public class CustomerReactive {
             throw exception.nullValues("Put method 'add-customer', ");
         }
         log.info("Merging object with id: ", customer.getId());
-        return Panache.withTransaction(() -> Customer.<Customer>findById(customer.getId())
+        return Panache.withTransaction(() -> customerRepository.findById(customer.getId())
                         .onItem().ifNotNull().invoke(entity -> {
                             entity.setNames(customer.getCustomer().getNames());
                             entity.setSurname(customer.getCustomer().getSurname());
