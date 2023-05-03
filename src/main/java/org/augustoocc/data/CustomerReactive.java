@@ -3,11 +3,9 @@ package org.augustoocc.data;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.core.eventbus.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.repository.CustomerRepository;
 import org.augustoocc.domain.Customer;
-import org.augustoocc.exceptions.NotFoundEx;
 import org.augustoocc.exceptions.NotWritableEx;
 import org.augustoocc.reactiveStreams.CustomerMessage;
 import org.augustoocc.validations.Validations;
@@ -20,10 +18,7 @@ import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static org.jboss.resteasy.reactive.RestResponse.StatusCode.NOT_FOUND;
 
 @Slf4j
 @ApplicationScoped
