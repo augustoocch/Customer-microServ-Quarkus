@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @ApplicationScoped
-public class CustomerReactive {
+public class DataAccessObjects {
 
     @Inject
     NotWritableEx exception;

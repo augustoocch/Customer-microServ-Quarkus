@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.reactiveStreams.CustomerMessage;
 import org.augustoocc.reactiveStreams.ReactiveCm;
-import org.augustoocc.data.CustomerReactive;
+import org.augustoocc.data.DataAccessObjects;
 import org.augustoocc.repository.CustomerRepository;
 
 import javax.inject.Inject;
@@ -34,7 +34,7 @@ public class CustomerAPI  {
     ReactiveCm reactiveCm;
 
     @Inject
-    CustomerReactive customerReactive;
+    DataAccessObjects customerReactive;
 
     @Inject
     CustomerRepository customerRepo;
@@ -56,6 +56,7 @@ public class CustomerAPI  {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("update/{id}/")
     public Uni<Response> putCustomer(@PathParam("id") Long id, Customer customer) {
+        log.info("Creating update request");
         CustomerMessage cm = new CustomerMessage(id, customer);
         return bus.<Customer>request("update-customer", cm)
                 .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
