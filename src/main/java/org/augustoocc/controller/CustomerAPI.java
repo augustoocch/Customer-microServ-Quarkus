@@ -47,7 +47,7 @@ public class CustomerAPI  {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<Response> add(Customer c) {
         return bus.<Customer>request("add-customer", c)
-                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                .invoke(i -> {log.info("EventBus reached at: {}", LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
                 .map(i -> Response.ok(i.body()).build());
     }
 
@@ -59,7 +59,7 @@ public class CustomerAPI  {
         log.info("Creating update request");
         CustomerMessage cm = new CustomerMessage(id, customer);
         return bus.<Customer>request("update-customer", cm)
-                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                .invoke(i -> {log.info("EventBus reached at: {}", LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
                 .map(i -> Response.ok(i.body()).build());
     }
 
@@ -69,7 +69,7 @@ public class CustomerAPI  {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<Response> getCustumer(@PathParam("id") Long id) {
         return bus.<Customer>request("get-by-id", id)
-                .invoke(i -> {log.info(LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
+                .invoke(i -> {log.info("EventBus reached at: {}", LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));})
                 .map(i ->  {
                     if(i.body() == null) {
                         return Response.ok().status(400).build();
