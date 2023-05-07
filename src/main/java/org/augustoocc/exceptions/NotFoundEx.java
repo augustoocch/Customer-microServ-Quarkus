@@ -23,4 +23,8 @@ public class NotFoundEx extends RuntimeException{
             return new NotFoundEx("The object has null values, " + info + LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));
         }
 
+        public NotFoundEx notFoundProduct(String info) {
+            return new NotFoundEx("The Product microservice is unreacheble, " + info + LocalDateTime.now(ZoneOffset.UTC).format(logtimestamp));
+        }
+
 }

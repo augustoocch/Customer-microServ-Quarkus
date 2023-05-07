@@ -5,6 +5,7 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
+import org.augustoocc.exceptions.NotFoundEx;
 import org.augustoocc.reactiveStreams.CustomerMessage;
 import org.augustoocc.reactiveStreams.ReactiveCm;
 import org.augustoocc.data.DataAccessObjects;
@@ -41,6 +42,9 @@ public class CustomerAPI  {
 
     @Inject
     DateTimeFormatter logtimestamp;
+
+    @Inject
+    NotFoundEx ex;
 
 
     @POST
@@ -98,7 +102,7 @@ public class CustomerAPI  {
     @Path("{id}/customer-products")
     public Uni<Customer> getProductById(@PathParam("id") Long id) {
        return Uni.combine().all().unis(reactiveCm.getReactiveCustomerStream(id), reactiveCm.listReactiveProducts())
-                .combinedWith((customer, listOfProd) -> {
+               .combinedWith((customer, listOfProd) -> {
                     customer.getProducts().forEach(productCustomer -> {
                         listOfProd.forEach(originalProduct -> {
                             if(productCustomer.getProduct().equals(originalProduct.getId())) {

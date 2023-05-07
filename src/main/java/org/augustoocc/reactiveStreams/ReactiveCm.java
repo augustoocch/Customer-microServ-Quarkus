@@ -10,6 +10,7 @@ import io.vertx.mutiny.ext.web.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 import org.augustoocc.domain.Customer;
 import org.augustoocc.domain.Product;
+import org.augustoocc.exceptions.NotFoundEx;
 import org.augustoocc.repository.CustomerRepository;
 
 import javax.annotation.PostConstruct;
@@ -32,6 +33,9 @@ public class ReactiveCm {
 
     private WebClient webClient;
 
+    @Inject
+    NotFoundEx notFoundEx;
+
     @PostConstruct
     void initialize() {
         this.webClient = WebClient.create(vertxReactive,
@@ -46,7 +50,7 @@ public class ReactiveCm {
 
     public Uni<List<Product>> listReactiveProducts() {
         return webClient.get(8081, "localhost", "/api/v1/product").send()
-                .onFailure().invoke(response -> log.error("Failure getting the List of Products", response))
+                .onFailure().invoke(response -> log.error("ERROR ->", notFoundEx.notFoundProduct("Method listReactiveProducts in ReactiveCm: ")))
                 .onItem().transform(response -> {
                     List<Product> list = new ArrayList<>();
                     JsonArray objects = response.bodyAsJsonArray();
